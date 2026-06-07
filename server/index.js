@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
-const dataDir = path.join(rootDir, 'data');
+const dataDir = process.env.DATA_DIR || path.join(rootDir, 'data');
 const dbFile = path.join(dataDir, 'orders.db');
 const workbookFile = path.join(dataDir, 'icecream-orders.xlsx');
 const port = process.env.PORT || 3001;
