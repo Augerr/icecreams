@@ -203,9 +203,10 @@ function App() {
 
               {localizedProducts.map((product) => (
                 <React.Fragment key={product.id}>
-                  <div className="item-cell">
+                  <div className={`item-cell${product.active ? '' : ' item-cell-unavailable'}`}>
                     <strong>{product.name}</strong>
                     <span>{product.note}</span>
+                    {!product.active && <span className="out-of-stock-badge">{t.outOfStock}</span>}
                   </div>
                   <div className="price-cell">{currency(product.price, language)}</div>
                   <div className="quantity-cell">
@@ -213,6 +214,7 @@ function App() {
                       type="button"
                       className="icon-button"
                       aria-label={t.decreaseLabel(product.name)}
+                      disabled={!product.active}
                       onClick={() => updateQuantity(product.id, quantities[product.id] - 1)}
                     >
                       <Minus size={16} />
@@ -221,12 +223,14 @@ function App() {
                       aria-label={t.quantityLabel(product.name)}
                       value={quantities[product.id]}
                       inputMode="numeric"
+                      disabled={!product.active}
                       onChange={(event) => updateQuantity(product.id, event.target.value)}
                     />
                     <button
                       type="button"
                       className="icon-button"
                       aria-label={t.increaseLabel(product.name)}
+                      disabled={!product.active}
                       onClick={() => updateQuantity(product.id, quantities[product.id] + 1)}
                     >
                       <Plus size={16} />

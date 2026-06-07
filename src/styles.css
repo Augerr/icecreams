@@ -191,6 +191,22 @@ label select {
   font-size: 0.9rem;
 }
 
+.item-cell-unavailable {
+  opacity: 0.55;
+}
+
+.out-of-stock-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f3e0db;
+  color: #a2382a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .price-cell,
 .line-cell {
   font-weight: 750;

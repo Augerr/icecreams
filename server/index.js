@@ -544,7 +544,7 @@ app.delete('/api/admin/companies/:id', requireAdmin, (request, response) => {
 });
 
 app.get('/api/products', (_request, response) => {
-  response.json({ products: getAllProducts().filter((product) => product.active) });
+  response.json({ products: getAllProducts() });
 });
 
 app.get('/api/companies', (_request, response) => {
