@@ -1,32 +1,5 @@
 export const LANGUAGES = ['en', 'fr'];
 
-export const PRODUCT_TRANSLATIONS = {
-  vanilla_cup: {
-    en: { name: 'Vanilla Cup', note: 'Classic vanilla, single-serve cup' },
-    fr: { name: 'Coupe vanille', note: 'Vanille classique, format individuel' }
-  },
-  chocolate_cup: {
-    en: { name: 'Chocolate Cup', note: 'Rich chocolate, single-serve cup' },
-    fr: { name: 'Coupe chocolat', note: 'Chocolat riche, format individuel' }
-  },
-  strawberry_cup: {
-    en: { name: 'Strawberry Cup', note: 'Strawberry cream, single-serve cup' },
-    fr: { name: 'Coupe fraise', note: 'Crème à la fraise, format individuel' }
-  },
-  mint_chip: {
-    en: { name: 'Mint Chip', note: 'Mint ice cream with chocolate chips' },
-    fr: { name: 'Menthe et brisures', note: 'Crème glacée à la menthe avec brisures de chocolat' }
-  },
-  sandwich: {
-    en: { name: 'Ice Cream Sandwich', note: 'Vanilla center with cookie wafers' },
-    fr: { name: 'Sandwich glacé', note: 'Centre à la vanille entre deux gaufrettes' }
-  },
-  fudge_bar: {
-    en: { name: 'Fudge Bar', note: 'Chocolate fudge frozen bar' },
-    fr: { name: 'Barre fudge', note: 'Barre glacée au fudge au chocolat' }
-  }
-};
-
 export const translations = {
   en: {
     languageName: 'English',
@@ -35,6 +8,8 @@ export const translations = {
     nameLabel: 'Name',
     companyLabel: 'Company',
     selectCompany: 'Select a company',
+    loadingMenu: 'Loading menu…',
+    loadError: 'Could not load the menu. Please refresh the page.',
     menuLabel: 'Ice cream menu',
     itemHeading: 'Item',
     priceHeading: 'Price',
@@ -60,6 +35,8 @@ export const translations = {
     nameLabel: 'Nom',
     companyLabel: 'Entreprise',
     selectCompany: 'Choisir une entreprise',
+    loadingMenu: 'Chargement du menu…',
+    loadError: 'Impossible de charger le menu. Veuillez actualiser la page.',
     menuLabel: 'Menu de crème glacée',
     itemHeading: 'Article',
     priceHeading: 'Prix',

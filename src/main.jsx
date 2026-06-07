@@ -1,21 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Check, IceCreamBowl, Minus, Plus, ReceiptText, RotateCcw } from 'lucide-react';
-import { LANGUAGES, PRODUCT_TRANSLATIONS, detectInitialLanguage, translations } from './translations.js';
+import { LANGUAGES, detectInitialLanguage, translations } from './translations.js';
+import AdminApp from './AdminApp.jsx';
 import './styles.css';
 
-const PRODUCTS = [
-  { id: 'vanilla_cup', price: 3.5 },
-  { id: 'chocolate_cup', price: 3.5 },
-  { id: 'strawberry_cup', price: 3.5 },
-  { id: 'mint_chip', price: 4 },
-  { id: 'sandwich', price: 4.25 },
-  { id: 'fudge_bar', price: 3.75 }
-];
-
-const initialQuantities = Object.fromEntries(PRODUCTS.map((product) => [product.id, 0]));
-
 const CURRENCY_LOCALES = { en: 'en-CA', fr: 'fr-CA' };
+
+function quantitiesFor(products) {
+  return Object.fromEntries(products.map((product) => [product.id, 0]));
+}
 
 function currency(value, language) {
   return new Intl.NumberFormat(CURRENCY_LOCALES[language], {
@@ -27,8 +21,11 @@ function currency(value, language) {
 function App() {
   const [language, setLanguage] = useState(detectInitialLanguage);
   const [customer, setCustomer] = useState({ name: '', company: '' });
-  const [quantities, setQuantities] = useState(initialQuantities);
+  const [products, setProducts] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [quantities, setQuantities] = useState({});
   const [status, setStatus] = useState({ type: 'idle', message: '' });
+  const [catalogStatus, setCatalogStatus] = useState('loading');
 
   const t = translations[language];
 
@@ -37,9 +34,53 @@ function App() {
     document.documentElement.lang = language;
   }, [language]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCatalog() {
+      try {
+        const [productsResponse, companiesResponse] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/companies')
+        ]);
+
+        if (!productsResponse.ok || !companiesResponse.ok) {
+          throw new Error('Failed to load catalog');
+        }
+
+        const productsPayload = await productsResponse.json();
+        const companiesPayload = await companiesResponse.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        setProducts(productsPayload.products);
+        setCompanies(companiesPayload.companies);
+        setQuantities(quantitiesFor(productsPayload.products));
+        setCatalogStatus('ready');
+      } catch {
+        if (!cancelled) {
+          setCatalogStatus('error');
+        }
+      }
+    }
+
+    loadCatalog();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const localizedProducts = useMemo(
-    () => PRODUCTS.map((product) => ({ ...product, ...PRODUCT_TRANSLATIONS[product.id][language] })),
-    [language]
+    () =>
+      products.map((product) => ({
+        ...product,
+        name: product.name[language],
+        note: product.note[language]
+      })),
+    [products, language]
   );
 
   const orderLines = useMemo(
@@ -89,7 +130,7 @@ function App() {
     }
 
     setCustomer({ name: '', company: '' });
-    setQuantities(initialQuantities);
+    setQuantities(quantitiesFor(products));
     setStatus({ type: 'success', message: t.success });
   }
 
@@ -141,61 +182,68 @@ function App() {
                 <option value="" disabled>
                   {t.selectCompany}
                 </option>
-                <option value="Agropur">Agropur</option>
-                <option value="Company B">Company B</option>
-                <option value="Company C">Company C</option>
+                {companies.map((company) => (
+                  <option key={company.id} value={company.name}>
+                    {company.name}
+                  </option>
+                ))}
               </select>
             </label>
           </div>
 
-          <div className="order-grid" aria-label={t.menuLabel}>
-            <div className="grid-heading item-heading">{t.itemHeading}</div>
-            <div className="grid-heading price-heading">{t.priceHeading}</div>
-            <div className="grid-heading quantity-heading">{t.qtyHeading}</div>
-            <div className="grid-heading line-heading">{t.lineHeading}</div>
+          {catalogStatus === 'loading' && <p className="status idle">{t.loadingMenu}</p>}
+          {catalogStatus === 'error' && <p className="status error">{t.loadError}</p>}
 
-            {localizedProducts.map((product) => (
-              <React.Fragment key={product.id}>
-                <div className="item-cell">
-                  <strong>{product.name}</strong>
-                  <span>{product.note}</span>
-                </div>
-                <div className="price-cell">{currency(product.price, language)}</div>
-                <div className="quantity-cell">
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={t.decreaseLabel(product.name)}
-                    onClick={() => updateQuantity(product.id, quantities[product.id] - 1)}
-                  >
-                    <Minus size={16} />
-                  </button>
-                  <input
-                    aria-label={t.quantityLabel(product.name)}
-                    value={quantities[product.id]}
-                    inputMode="numeric"
-                    onChange={(event) => updateQuantity(product.id, event.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="icon-button"
-                    aria-label={t.increaseLabel(product.name)}
-                    onClick={() => updateQuantity(product.id, quantities[product.id] + 1)}
-                  >
-                    <Plus size={16} />
-                  </button>
-                </div>
-                <div className="line-cell">{currency(quantities[product.id] * product.price, language)}</div>
-              </React.Fragment>
-            ))}
-          </div>
+          {catalogStatus === 'ready' && (
+            <div className="order-grid" aria-label={t.menuLabel}>
+              <div className="grid-heading item-heading">{t.itemHeading}</div>
+              <div className="grid-heading price-heading">{t.priceHeading}</div>
+              <div className="grid-heading quantity-heading">{t.qtyHeading}</div>
+              <div className="grid-heading line-heading">{t.lineHeading}</div>
+
+              {localizedProducts.map((product) => (
+                <React.Fragment key={product.id}>
+                  <div className="item-cell">
+                    <strong>{product.name}</strong>
+                    <span>{product.note}</span>
+                  </div>
+                  <div className="price-cell">{currency(product.price, language)}</div>
+                  <div className="quantity-cell">
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={t.decreaseLabel(product.name)}
+                      onClick={() => updateQuantity(product.id, quantities[product.id] - 1)}
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <input
+                      aria-label={t.quantityLabel(product.name)}
+                      value={quantities[product.id]}
+                      inputMode="numeric"
+                      onChange={(event) => updateQuantity(product.id, event.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="icon-button"
+                      aria-label={t.increaseLabel(product.name)}
+                      onClick={() => updateQuantity(product.id, quantities[product.id] + 1)}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                  <div className="line-cell">{currency(quantities[product.id] * product.price, language)}</div>
+                </React.Fragment>
+              ))}
+            </div>
+          )}
 
           <div className="action-row">
             <button
               type="button"
               className="secondary-button"
               onClick={() => {
-                setQuantities(initialQuantities);
+                setQuantities(quantitiesFor(products));
                 setStatus({ type: 'idle', message: '' });
               }}
             >
@@ -242,4 +290,6 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+const isAdminRoute = window.location.pathname.startsWith('/admin');
+
+createRoot(document.getElementById('root')).render(isAdminRoute ? <AdminApp /> : <App />);

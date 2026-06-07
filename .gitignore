@@ -4,3 +4,4 @@ data/orders.json
 data/*.xlsx
 data/*.db*
 *.log
+.env
