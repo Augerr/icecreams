@@ -1,0 +1,6 @@
+node_modules
+dist
+data/orders.json
+data/*.xlsx
+data/*.db*
+*.log
