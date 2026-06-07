@@ -294,7 +294,13 @@ function buildWorkbookFromOrders(orders) {
   const workbook = createWorkbook(products);
   const ordersSheet = workbook.getWorksheet('Orders');
 
-  for (const order of orders) {
+  const sortedOrders = [...orders].sort(
+    (a, b) =>
+      a.customer.company.localeCompare(b.customer.company) ||
+      a.customer.name.localeCompare(b.customer.name)
+  );
+
+  for (const order of sortedOrders) {
     ordersSheet.addRow({
       name: order.customer.name,
       company: order.customer.company,
